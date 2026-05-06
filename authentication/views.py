@@ -32,5 +32,7 @@ def google_login(request):
             'refresh': str(refresh),
             'user': {'email': email, 'name': name}
         })
-    except ValueError:
-        return Response({'error': 'Invalid token'}, status=status.HTTP_401_UNAUTHORIZED)
+    except ValueError as e:
+        return Response({'error': f'Invalid token: {str(e)}'}, status=status.HTTP_401_UNAUTHORIZED)
+    except Exception as e:
+        return Response({'error': f'Auth failed: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
