@@ -122,3 +122,42 @@ def category_detail(request, category_id):
         return Response(serialize(categories_collection.find_one({'_id': oid})))
     categories_collection.delete_one({'_id': oid})
     return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+# --- WAREHOUSES ---
+warehouses_collection = db['warehouses']
+
+
+@api_view(['GET', 'POST'])
+def warehouses_list(request):
+    if request.method == 'GET':
+        warehouses = list(warehouses_collection.find({'user': request.user.username}).sort('name', 1))
+        return Response([serialize(w) for w in warehouses])
+    data = request.data.copy()
+    data['user'] = request.user.username
+    data['created_at'] = datetime.utcnow()
+    result = warehouses_collection.insert_one(data)
+    data['id'] = str(result.inserted_id)
+    data.pop('_id', None)
+    return Response(data, status=status.HTTP_201_CREATED)
+
+
+@api_view(['GET', 'PUT', 'DELETE'])
+def warehouse_detail(request, warehouse_id):
+    try:
+        oid = ObjectId(warehouse_id)
+    except Exception:
+        return Response({'error': 'Invalid ID'}, status=status.HTTP_400_BAD_REQUEST)
+    doc = warehouses_collection.find_one({'_id': oid, 'user': request.user.username})
+    if not doc:
+        return Response({'error': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
+    if request.method == 'GET':
+        return Response(serialize(doc))
+    if request.method == 'PUT':
+        data = request.data.copy()
+        data.pop('id', None)
+        data.pop('user', None)
+        warehouses_collection.update_one({'_id': oid}, {'$set': data})
+        return Response(serialize(warehouses_collection.find_one({'_id': oid})))
+    warehouses_collection.delete_one({'_id': oid})
+    return Response(status=status.HTTP_204_NO_CONTENT)

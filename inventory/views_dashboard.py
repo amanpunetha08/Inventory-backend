@@ -11,8 +11,10 @@ def dashboard(request):
     orders = list(db['orders'].find({'user': user}))
     suppliers = list(db['suppliers'].find({'user': user}))
     categories = list(db['categories'].find({'user': user}))
+    warehouses = list(db['warehouses'].find({'user': user}))
 
     total_products = len(items)
+    total_stock = sum(int(i.get('quantity', 0)) for i in items)
     low_stock = sum(1 for i in items if 0 < int(i.get('quantity', 0)) <= 5)
     out_of_stock = sum(1 for i in items if int(i.get('quantity', 0)) == 0)
     total_value = sum(float(i.get('price', 0)) * int(i.get('quantity', 0)) for i in items)
@@ -39,9 +41,20 @@ def dashboard(request):
     # Low stock items
     low_stock_items = [{'name': i['name'], 'quantity': i['quantity'], 'sku': i.get('sku', '')} for i in items if 0 < int(i.get('quantity', 0)) <= 5]
 
+    # Warehouse summary
+    warehouse_summary = []
+    for w in warehouses:
+        warehouse_summary.append({
+            'id': str(w['_id']),
+            'name': w.get('name', ''),
+            'location': w.get('location', ''),
+            'stock': int(w.get('stock', 0)),
+        })
+
     return Response({
         'summary': {
             'total_products': total_products,
+            'total_stock': total_stock,
             'low_stock': low_stock,
             'out_of_stock': out_of_stock,
             'total_value': round(total_value, 2),
@@ -49,6 +62,7 @@ def dashboard(request):
             'pending_orders': pending_orders,
             'total_suppliers': len(suppliers),
             'total_categories': len(categories),
+            'total_warehouses': len(warehouses),
         },
         'orders_breakdown': {
             'pending': pending_orders,
@@ -58,4 +72,5 @@ def dashboard(request):
         'category_stats': category_stats,
         'recent_orders': recent_orders,
         'low_stock_items': low_stock_items,
+        'warehouse_summary': warehouse_summary,
     })

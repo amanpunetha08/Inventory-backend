@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import items_list, item_detail, items_stats
-from .views_extra import orders_list, order_detail, suppliers_list, supplier_detail, categories_list, category_detail
+from .views_extra import orders_list, order_detail, suppliers_list, supplier_detail, categories_list, category_detail, warehouses_list, warehouse_detail
 from .views_dashboard import dashboard
 from .views_currency import exchange_rates
 from .views_reports import reports, alerts
@@ -15,6 +15,8 @@ urlpatterns = [
     path('suppliers/<str:supplier_id>/', supplier_detail),
     path('categories/', categories_list),
     path('categories/<str:category_id>/', category_detail),
+    path('warehouses/', warehouses_list),
+    path('warehouses/<str:warehouse_id>/', warehouse_detail),
     path('dashboard/', dashboard),
     path('exchange-rates/', exchange_rates),
     path('reports/', reports),
